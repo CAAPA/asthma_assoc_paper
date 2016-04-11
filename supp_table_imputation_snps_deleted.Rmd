@@ -1,0 +1,88 @@
+---
+title: "Supplemtary Table Imputation SNPs deleted"
+output: html_document
+---
+
+```{r, echo=FALSE}
+
+sites <- c("jhu_650y",
+            "jhu_abr",
+            "chicago",
+            "detroit",
+            "jackson_aric",
+            "jackson_jhs",
+            "ucsf_sf",
+            "washington",
+            "winston_salem",
+            "jhu_bdos",
+            "ucsf_pr")
+
+cohorts <- c(
+             "Baltimore (GRAAD)",
+             "Baltimore (ABR)",
+             "Chicago",
+             "Detroit",
+             "Jackson (ARIC)",
+             "Jackson (JHS)",
+             "San Francisco",
+             "Washington",
+             "Winston-Salem",
+             "Barbados",
+             "Puerto Rico")
+
+frame <- data.frame()
+
+i <- 0
+for (site in sites) {
+  count.file <- paste0("../../caapa_imputation_pipeline/data/output/", site, "/imputed_qc/chr_snp_count.txt")
+  counts <- read.delim(count.file)
+  i <- i+1
+  cohort <- cohorts[i]
+  
+  initial <- sum(counts$total)
+  low_maf_fail <- sum(counts$low_rsq_lt)
+  low_maf_pass <- sum(counts$total_lt) - low_maf_fail
+  prop_low_maf_fail <- round(low_maf_fail/(low_maf_fail + low_maf_pass),2)
+  prop_low_maf_pass <- round(1 - prop_low_maf_fail,2)
+  high_maf_fail <- sum(counts$low_rsq_gt)
+  high_maf_pass <- sum(counts$total_gt) - high_maf_fail
+  prop_high_maf_fail <- round(high_maf_fail/(high_maf_fail + high_maf_pass),2)
+  prop_high_maf_pass <- round(1 - prop_high_maf_fail,2)
+  remain <- initial - low_maf_fail - low_maf_pass
+  
+  initial.str <- formatC(initial, format="d", big.mark=",")
+  low_maf_fail.str <- paste0(formatC(low_maf_fail, format="d", big.mark=","),
+                             " (",
+                             prop_low_maf_fail*100,
+                             "%)")
+  low_maf_pass.str <- paste0(formatC(low_maf_pass, format="d", big.mark=","),
+                             " (",
+                             prop_low_maf_pass*100,
+                             "%)")
+  high_maf_fail.str <- paste0(formatC(high_maf_fail, format="d", big.mark=","),
+                             " (",
+                             prop_high_maf_fail*100,
+                             "%)")
+  high_maf_pass.str <- paste0(formatC(high_maf_pass, format="d", big.mark=","),
+                             " (",
+                             prop_high_maf_pass*100,
+                             "%)")
+  remain.str <- formatC(remain, format="d", big.mark=",")
+  
+  frame <- rbind(frame, data.frame(prop_low_maf_fail,
+                                   prop_high_maf_fail,
+                                   cohort,
+                                   initial.str, 
+                                   low_maf_fail.str,
+                                   low_maf_pass.str,
+                                   high_maf_fail.str,
+                                   high_maf_pass.str,
+                                   remain.str))
+}
+
+
+(mean(frame$prop_low_maf_fail[-6]))
+(mean(frame$prop_high_maf_fail))
+
+```
+
