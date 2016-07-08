@@ -1,7 +1,9 @@
-study.name <- "BRIDGE"
-in.file.name <- "tmp_jhu_abr.txt"
-out.file.name <- "jhu_abr.png"
-err.p.file.name <- "jhu_small_p.txt"
+args <- commandArgs(trailingOnly = TRUE)
+
+study.name <- args[1] #"BRIDGE"
+in.file.name <- args[2] #"tmp_jhu_abr.txt"
+out.file.name <- args[3] #"jhu_abr.png"
+err.p.file.name <- args[4] #"jhu_small_p.txt"
 
 plotQQ <- function(p.vals, study.name, plot.type) {
   observed <- sort(p.vals)
@@ -18,10 +20,9 @@ plotQQ <- function(p.vals, study.name, plot.type) {
   text(7, 2, bquote(lambda == .(inf.fact)))
 }
 
-#png(out.file.name, width=720, height=265)
 png(out.file.name, width=9.5, height=3.8, units = 'in', res = 200)
 par(mfrow=c(1,3), cex=1.2)
-results <- read.table("tmp_jhu_abr.txt", head=T, stringsAsFactors = F)
+results <- read.table(in.file.name, head=T, stringsAsFactors = F)
 write.table(results[results$PVALUE < 1e-9,], err.p.file.name,
             sep="\t", quote=F, row.names=F, col.names=T)
 p.vals <- results$PVALUE
