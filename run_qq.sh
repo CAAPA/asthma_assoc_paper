@@ -16,10 +16,10 @@ out_file_name=../data/output/qq_plots/${cohort_name}.png
 err_p_file_name=../data/output/err_p_vals/${cohort_name}.txt
 
 #Create output directories in case they do not exist
-mkdir ../data/
-mkdir ../data/output/
-mkdir ../data/output/qq_plots
-mkdir ../data/output/err_p_vals
+mkdir ./data/
+mkdir ./data/output/
+mkdir ./data/output/qq_plots
+mkdir ./data/output/err_p_vals
 
 #Load R
 module load R/3.2.5
