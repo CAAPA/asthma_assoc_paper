@@ -1,0 +1,184 @@
+---
+title: ""
+output: html_document
+---
+
+```{r, echo=FALSE}
+library(stringr)
+
+sites <- c("jhu_650y",
+           "jhu_abr",
+           "chicago",
+           "jackson_aric",
+           "jackson_jhs",
+           "ucsf_sf",
+           "washington", 
+           "winston_salem",
+           "jhu_bdos",
+           "ucsf_pr")
+
+cohorts <- c("GRAAD", 
+             "BRIDGE",
+             "CAG",
+             "ARIC",
+             "JHS",
+             "SAGE II",
+             "NIH",
+             "SARP",
+             "BAGS",
+             "GALA II"
+)
+
+###############################################################################
+getPreQCStatistics <- function () {
+
+  out.frame <- data.frame()
+  
+  i <- 0
+  for (site in sites){
+    i <- i + 1
+    flow.file <- paste0("../../caapa_imputation_pipeline/data/output/", site, "/flow/flow_nrs.txt")
+    if (file.exists(flow.file)) {
+      flow.nrs <- read.table(flow.file)
+      flow.nrs <- flow.nrs[flow.nrs$V1 %in% c("n_init_gwas",
+                                              "n_common",
+                                              "n_conc_common",
+                                              "m_init_gwas",
+                                              "m_init_adpc",
+                                              "m_qc_gwas",
+                                              "m_qc_adpc",
+                                              "m_stranded_gwas",
+                                              "m_stranded_adpc",
+                                              "m_merged"),]
+      cohort <- cohorts[i]
+      nrs <- c(cohort, formatC(as.numeric(str_trim(flow.nrs[,2])), format="d", big.mark=","))
+    } else {
+      cohort <- cohorts[i]
+      nrs <- c(cohort, rep("", 10))
+    }
+    out.frame <- rbind(out.frame, data.frame(t(nrs)))
+  }
+  
+  names(out.frame) <- c("",
+                        "n initial GWAS",
+                        "m initial GWAS",
+                        "m initial ADPC",
+                        "m QC GWAS",
+                        "m QC ADPC",
+                        "m no ambiguous AT/CG GWAS",
+                        "m no ambiguous AT/CG ADPC",
+                        "n common samples",
+                        "n concordant samples",
+                        "m merged")
+  out.frame <- out.frame[,c(1,2,9,10,3,5,7,4,6,8,11)]
+  
+  return(out.frame)
+}
+
+###############################################################################
+getImputationQCStatistics1 <- function (dataset) {
+  
+  out.frame <- data.frame()
+  
+  i <- 0
+  for (site in sites){
+    i <- i + 1
+    stats.file <- paste0("../../caapa_imputation_pipeline/data/output/", site, "/statistics/", dataset, ".pdf")
+    stats.summ.file <- paste0("../../caapa_imputation_pipeline/data/working/", site, "/", dataset, "_imputation_statistics_1.txt")
+    if (file.exists(stats.file)) {
+      system(paste("bash get_imputation_qc_stats.sh", site, dataset))
+      stats <- read.table(stats.summ.file)[,2]
+      cohort <- cohorts[i]
+      nrs <- c(cohort, as.character(stats))
+    } else {
+      cohort <- cohorts[i]
+      nrs <- c(cohort, rep("", 7))
+    }
+    out.frame <- rbind(out.frame, data.frame(t(nrs)))
+  }
+  
+  names(out.frame) <- c("",
+                        "n",
+                        "m excluded",
+                        "m remaining",
+                        "chunks excluded",
+                        "chunks remaining",
+                        "m match",
+                        "reference overlap")
+  
+  return (out.frame)
+  
+}
+
+###############################################################################
+getImputationQCStatistics2 <- function (dataset) {
+  
+  out.frame <- data.frame()
+  
+  i <- 0
+  for (site in sites){
+    i <- i + 1
+    stats.file <- paste0("../../caapa_imputation_pipeline/data/output/", site, "/statistics/", dataset, ".pdf")
+    stats.summ.file <- paste0("../../caapa_imputation_pipeline/data/working/", site, "/", dataset, "_imputation_statistics_2.txt")
+    if (file.exists(stats.file)) {
+      system(paste("bash get_imputation_qc_stats.sh", site, dataset))
+      stats <- read.table(stats.summ.file)[,2]
+      cohort <- cohorts[i]
+      nrs <- c(cohort, as.character(stats))
+    } else {
+      cohort <- cohorts[i]
+      nrs <- c(cohort, rep("", 6))
+    }
+    out.frame <- rbind(out.frame, data.frame(t(nrs)))
+  }
+  
+  names(out.frame) <- c("",
+                        "m allele frequencies > 0.5",
+                        "m allele switch",
+                        "m strand flip",
+                        "m strand flip and allele switch",
+                        "m AT/CG",
+                        "m allele mismatch")
+  
+  return (out.frame)
+  
+}
+ 
+```
+
+##### Supplementary Tables S3. Summaries of GWAS+ADPC data set merging and imputation process results.
+
+The GWAS+ADPC data set merging table summarizes the number of subjects (n) and number of SNPs (m) available at
+different stages of the data merging process.
+The Imputation QC tables summarize the imputation QC report downloaded from the Michigan imputation server, 
+for pre-imputation QC (Quality Control Only option) of the GWAS data sets and ADPC data sets, and 
+impuation QC of the merged GWAS+ADPC data set.
+
+#### GWAS+ADPC data set merging
+
+```{r, echo=FALSE}
+knitr::kable(getPreQCStatistics(), align=c("l", rep("r",10)))
+```
+
+#### Imputation QC
+
+##### GWAS
+
+```{r, echo=FALSE}
+knitr::kable(getImputationQCStatistics1("gwas"), align=c("l", rep("r",7)))
+knitr::kable(getImputationQCStatistics2("gwas"), align=c("l", rep("r",6)))
+```
+
+##### ADPC
+
+```{r, echo=FALSE}
+knitr::kable(getImputationQCStatistics1("adpc"), align=c("l", rep("r",7)))
+knitr::kable(getImputationQCStatistics2("adpc"), align=c("l", rep("r",6)))
+```
+
+##### GWAS+ADPC
+
+```{r, echo=FALSE}
+knitr::kable(getImputationQCStatistics1("imputation"), align=c("l", rep("r",7)))
+knitr::kable(getImputationQCStatistics2("imputation"), align=c("l", rep("r",6)))
+```
