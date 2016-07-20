@@ -1,6 +1,6 @@
 ---
 title: "Supplemtary Table Imputation SNPs deleted"
-output: html_document
+output: word_document
 ---
 
 ```{r, echo=FALSE}
@@ -8,27 +8,25 @@ output: html_document
 sites <- c("jhu_650y",
             "jhu_abr",
             "chicago",
-            "detroit",
             "jackson_aric",
             "jackson_jhs",
             "ucsf_sf",
-            "washington",
+            "washington", 
             "winston_salem",
             "jhu_bdos",
             "ucsf_pr")
 
-cohorts <- c(
-             "Baltimore (GRAAD)",
-             "Baltimore (ABR)",
-             "Chicago",
-             "Detroit",
-             "Jackson (ARIC)",
-             "Jackson (JHS)",
-             "San Francisco",
-             "Washington",
-             "Winston-Salem",
-             "Barbados",
-             "Puerto Rico")
+cohorts <- c("GRAAD", 
+  "BRIDGE",
+  "CAG",
+  "ARIC",
+  "JHS",
+  "SAGE II",
+  "NIH",
+  "SARP",
+  "BAGS",
+  "GALA II"
+)
 
 frame <- data.frame()
 
@@ -48,7 +46,7 @@ for (site in sites) {
   high_maf_pass <- sum(counts$total_gt) - high_maf_fail
   prop_high_maf_fail <- round(high_maf_fail/(high_maf_fail + high_maf_pass),2)
   prop_high_maf_pass <- round(1 - prop_high_maf_fail,2)
-  remain <- initial - low_maf_fail - low_maf_pass
+  remain <- initial - low_maf_fail - high_maf_fail
   
   initial.str <- formatC(initial, format="d", big.mark=",")
   low_maf_fail.str <- paste0(formatC(low_maf_fail, format="d", big.mark=","),
@@ -69,9 +67,9 @@ for (site in sites) {
                              "%)")
   remain.str <- formatC(remain, format="d", big.mark=",")
   
-  frame <- rbind(frame, data.frame(prop_low_maf_fail,
+  frame <- rbind(frame, data.frame(cohort,
+                                   prop_low_maf_fail,
                                    prop_high_maf_fail,
-                                   cohort,
                                    initial.str, 
                                    low_maf_fail.str,
                                    low_maf_pass.str,
@@ -80,9 +78,11 @@ for (site in sites) {
                                    remain.str))
 }
 
+knitr::kable(frame, align=c("l", rep("r",10)))
 
 (mean(frame$prop_low_maf_fail[-6]))
 (mean(frame$prop_high_maf_fail))
+
 
 ```
 
