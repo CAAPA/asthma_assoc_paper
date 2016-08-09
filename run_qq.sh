@@ -1,5 +1,6 @@
 #!/bin/bash
 
+#Test commit change
 #Set parameters
 if [ "$#" -eq  "0" ]
 then
